@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
 import { useStore } from '../lib/storeContext'
-import { dayKey, fmtHourMin, fmtMinutes, fmtShortDay, isToday, startOfDay } from '../lib/utils'
+import { dayKey, fmtMinutes, isToday } from '../lib/utils'
 import { AnimatedInView } from './AnimatedInView'
 import { Heatmap } from './Heatmap'
+import { MonthCalendar } from './MonthCalendar'
+import { WeekAreaChart } from './WeekAreaChart'
 
 function statCard(label: string, value: string, sub?: string, muted = false): React.JSX.Element {
   return (
@@ -34,18 +36,6 @@ export function StatsView(): React.JSX.Element {
 
     const todaySessions = sessions.filter((s) => isToday(s.completedAt)).length
 
-    const week: { label: string; minutes: number; isToday: boolean }[] = []
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      const start = startOfDay(d.getTime())
-      const end = start + 86_400_000
-      const minutes = sessions
-        .filter((s) => s.completedAt >= start && s.completedAt < end)
-        .reduce((a, s) => a + s.minutes, 0)
-      week.push({ label: fmtShortDay(start), minutes, isToday: isToday(start) })
-    }
-
     const bySession = new Map<string, number>()
     for (const s of sessions) {
       const key = s.taskTitle ?? 'Tanpa sesi'
@@ -53,10 +43,9 @@ export function StatsView(): React.JSX.Element {
     }
     const topSessions = [...bySession.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6)
 
-    return { totalMinutes, todayMinutes, streak, todaySessions, week, topSessions }
+    return { totalMinutes, todayMinutes, streak, todaySessions, topSessions }
   }, [sessions])
 
-  const weekMax = Math.max(1, ...stats.week.map((d) => d.minutes))
   const sessionMax = Math.max(1, ...stats.topSessions.map(([, m]) => m))
 
   return (
@@ -103,23 +92,18 @@ export function StatsView(): React.JSX.Element {
 
       <AnimatedInView as="section" className="panel">
         <div className="panel__head">
+          <h2>Kalender Bulanan</h2>
+          <span className="panel__hint">durasi sesi per hari</span>
+        </div>
+        <MonthCalendar />
+      </AnimatedInView>
+
+      <AnimatedInView as="section" className="panel">
+        <div className="panel__head">
           <h2>7 Hari Terakhir</h2>
-          <span className="panel__hint">menit fokus per hari</span>
+          <span className="panel__hint">dibandingkan minggu lalu</span>
         </div>
-        <div className="week-chart">
-          {stats.week.map((d, i) => (
-            <AnimatedInView key={i} className="week-col">
-              <span className="week-col__value">{d.minutes > 0 ? fmtHourMin(d.minutes) : ''}</span>
-              <div className="week-col__bar-wrap">
-                <div
-                  className={`week-col__bar${d.isToday ? ' week-col__bar--today' : ''}`}
-                  style={{ height: `${Math.round((d.minutes / weekMax) * 100)}%` }}
-                />
-              </div>
-              <span className="week-col__label">{d.label}</span>
-            </AnimatedInView>
-          ))}
-        </div>
+        <WeekAreaChart />
       </AnimatedInView>
 
       <AnimatedInView as="section" className="panel">

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { AppProvider } from './lib/store'
 import { useStore } from './lib/storeContext'
 import { TopNav } from './components/TopNav'
+import { WindowControls } from './components/WindowControls'
 import { TimerView } from './components/TimerView'
 import { TasksView } from './components/TasksView'
 import { HistoryView } from './components/HistoryView'
 import { StatsView } from './components/StatsView'
 import PixelBlast from './components/PixelBlast'
 import type { ViewId } from './types'
-import { click, isToday } from './lib/utils'
+import { click, clickPrimary, isToday } from './lib/utils'
 
 const PIXEL_PALETTE = ['#d43008', '#e2723d', '#e7a33a'] as const
 
@@ -20,7 +21,10 @@ function Shell(): React.JSX.Element {
     if (!settings.sound) return
     const handler = (e: MouseEvent): void => {
       const target = e.target as Element | null
-      if (target && target.closest('button')) click()
+      const button = target ? target.closest('button') : null
+      if (!button) return
+      if (button.hasAttribute('data-sound-primary')) clickPrimary()
+      else click()
     }
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
@@ -32,6 +36,10 @@ function Shell(): React.JSX.Element {
 
   return (
     <div className="app">
+      <div className="titlebar">
+        <span className="titlebar__title">Disiplin</span>
+        <WindowControls />
+      </div>
       <div className="scroll-wrap">
         <div className="app-bg" aria-hidden="true">
           <PixelBlast

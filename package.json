@@ -25,6 +25,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "motion": "^13.1.0",
     "postprocessing": "^6.39.4",
+    "recharts": "^3.10.1",
     "three": "^0.185.1"
   },
   "devDependencies": {

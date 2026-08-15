@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { FocusSession } from '../types'
 import { useStore } from '../lib/storeContext'
 import { AnimatedInView } from './AnimatedInView'
 import { dayKey, fmtDay, fmtMinutes, fmtTime, isToday } from '../lib/utils'
+import { ExportIcon, ImportIcon } from './icons'
 
 function toTimeValue(ts: number): string {
   const d = new Date(ts)
@@ -202,7 +203,27 @@ function SessionRow({ session }: { session: FocusSession }): React.JSX.Element {
 }
 
 export function HistoryView(): React.JSX.Element {
-  const { sessions, clearSessions } = useStore()
+  const { sessions, clearSessions, exportSessions, importSessions } = useStore()
+  const [notice, setNotice] = useState<string | null>(null)
+  const noticeTimer = useRef<number | null>(null)
+
+  const showNotice = (text: string): void => {
+    setNotice(text)
+    if (noticeTimer.current !== null) window.clearTimeout(noticeTimer.current)
+    noticeTimer.current = window.setTimeout(() => setNotice(null), 3000)
+  }
+
+  const handleExport = async (): Promise<void> => {
+    const res = await exportSessions()
+    if (res === 'ok') showNotice('Riwayat sesi berhasil diekspor')
+    else if (res === 'error') showNotice('Gagal mengekspor riwayat')
+  }
+
+  const handleImport = async (): Promise<void> => {
+    const res = await importSessions()
+    if (!res) return
+    showNotice(res.count > 0 ? `${res.count} sesi diimpor` : 'Tidak ada sesi baru di file tersebut')
+  }
 
   const groups = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => b.completedAt - a.completedAt)
@@ -223,10 +244,33 @@ export function HistoryView(): React.JSX.Element {
 
   return (
     <div className="view">
-      <header className="view__header">
+      <header className="view__header view__header--actions">
         <h1>Riwayat Sesi</h1>
         <p className="view__sub">{sessions.length} sesi fokus tercatat</p>
+        <div className="view__actions">
+          <button
+            type="button"
+            className="icon-btn icon-btn--bordered"
+            aria-label="Export riwayat sesi"
+            title="Export riwayat sesi"
+            disabled={sessions.length === 0}
+            onClick={handleExport}
+          >
+            <ExportIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className="icon-btn icon-btn--bordered"
+            aria-label="Import riwayat sesi"
+            title="Import riwayat sesi"
+            onClick={handleImport}
+          >
+            <ImportIcon size={16} />
+          </button>
+        </div>
       </header>
+
+      {notice && <p className="history-notice">{notice}</p>}
 
       {sessions.length > 0 && (
         <button type="button" className="cta cta--danger" onClick={clearSessions}>

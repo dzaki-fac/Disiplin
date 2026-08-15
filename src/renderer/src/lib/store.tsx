@@ -567,6 +567,66 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     []
   )
 
+  const exportSessions = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
+    if (typeof window.api?.exportSessions !== 'function') return 'error'
+    const payload = JSON.stringify(
+      {
+        app: 'disiplin',
+        kind: 'focus-sessions',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        sessions
+      },
+      null,
+      2
+    )
+    const res = await window.api.exportSessions(payload)
+    if (res.canceled) return 'canceled'
+    return res.ok ? 'ok' : 'error'
+  }, [sessions])
+
+  const importSessions = useCallback(async (): Promise<{ ok: boolean; count: number } | null> => {
+    if (typeof window.api?.importSessions !== 'function') return null
+    const res = await window.api.importSessions()
+    if (!res.ok || !res.content) return null
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(res.content)
+    } catch {
+      return null
+    }
+    const arr = Array.isArray(parsed)
+      ? parsed
+      : (parsed as { sessions?: unknown[] } | null)?.sessions
+    if (!Array.isArray(arr)) return null
+    const valid = arr.filter(
+      (x): x is FocusSession =>
+        typeof x === 'object' &&
+        x !== null &&
+        typeof (x as FocusSession).id === 'string' &&
+        typeof (x as FocusSession).minutes === 'number' &&
+        typeof (x as FocusSession).startedAt === 'number' &&
+        typeof (x as FocusSession).completedAt === 'number'
+    )
+    if (valid.length === 0) return { ok: true, count: 0 }
+    setSessions((prev) => {
+      const existing = new Set(prev.map((s) => s.id))
+      return [...prev, ...valid.filter((s) => !existing.has(s.id))]
+    })
+    setSessionList((prev) => {
+      const titles = new Set(prev.map((s) => s.title))
+      const fresh: SessionItem[] = []
+      for (const s of valid) {
+        if (s.taskTitle && !titles.has(s.taskTitle)) {
+          titles.add(s.taskTitle)
+          fresh.push({ id: uid(), title: s.taskTitle })
+        }
+      }
+      return fresh.length > 0 ? [...fresh, ...prev] : prev
+    })
+    return { ok: true, count: valid.length }
+  }, [])
+
   return (
     <StoreContext.Provider
       value={{
@@ -603,7 +663,9 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         skipTimer,
         clearSessions,
         deleteSession,
-        updateSession
+        updateSession,
+        exportSessions,
+        importSessions
       }}
     >
       {children}

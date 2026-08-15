@@ -18,7 +18,7 @@ const monthShort = (ts: number): string => monthShortFmt.format(ts)
 const fullDate = (ts: number): string => fullDateFmt.format(ts)
 
 const levelFor = (min: number): number =>
-  min <= 0 ? 0 : min < 30 ? 1 : min < 60 ? 2 : min < 120 ? 3 : 4
+  min <= 0 ? 0 : min < 120 ? 1 : min < 240 ? 2 : min < 360 ? 3 : 4
 
 interface Cell {
   ts: number

@@ -49,6 +49,61 @@ button {
   display: block;
   height: 100vh;
   overflow-y: auto;
+  padding-top: 32px;
+}
+
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-bottom: 1px solid var(--fog);
+  -webkit-app-region: drag;
+  app-region: drag;
+  user-select: none;
+}
+
+.titlebar__title {
+  margin-left: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--slate);
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.window-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 100%;
+  color: var(--slate);
+  transition:
+    background 150ms var(--ease),
+    color 150ms var(--ease);
+}
+
+.window-control:hover {
+  background: var(--fog);
+  color: var(--carbon);
+}
+
+.window-control--close:hover {
+  background: #d43008;
+  color: #ffffff;
 }
 
 .scroll-wrap {
@@ -77,6 +132,14 @@ button {
   background: #ffffff;
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--fog);
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.topnav button,
+.topnav a {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 .brand {
@@ -177,6 +240,18 @@ button {
 
 .view__header:has(.view-edit-toggle) {
   padding-right: 52px;
+}
+
+.view__header--actions {
+  padding-right: 84px;
+}
+
+.view__actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
 }
 
 .view__header h1 {
@@ -541,6 +616,27 @@ button {
 }
 
 .icon-btn--danger:hover {
+  color: var(--ember);
+}
+
+.icon-btn--bordered {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--ash);
+}
+
+.icon-btn--bordered:hover {
+  border-color: var(--ember);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.history-notice {
+  margin: -16px 0 20px;
+  font-size: 13px;
   color: var(--ember);
 }
 
@@ -1431,59 +1527,81 @@ button {
   font-style: italic;
 }
 
-.week-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  height: 200px;
+.week-area-chart {
+  padding: 14px 16px 8px;
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
 }
 
-.week-col {
-  flex: 1;
+.week-area-chart__legend {
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-bottom: 4px;
+}
+
+.week-area-chart__key {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 100%;
-}
-
-.week-col__value {
-  font-size: 11px;
-  color: var(--slate);
-  height: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.week-col__bar-wrap {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  max-width: 44px;
-}
-
-.week-col__bar {
-  width: 100%;
-  min-height: 3px;
-  background: var(--carbon);
-  transition: height 300ms var(--ease);
-}
-
-.week-col__bar--today {
-  background: var(--ember);
-}
-
-.week-col__label {
+  gap: 6px;
   font-size: 12px;
   color: var(--slate);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+}
+
+.week-area-chart__key i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.week-tooltip {
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.week-tooltip__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--carbon);
+}
+
+.week-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.9;
+}
+
+.week-tooltip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.week-tooltip__value {
+  margin-left: auto;
+  padding-left: 14px;
+  font-weight: 600;
+  color: var(--carbon);
+  font-variant-numeric: tabular-nums;
 }
 
 .task-bars {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding: 18px 20px;
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
 }
 
 .task-bar__row {
@@ -1524,7 +1642,10 @@ button {
 
 .heatmap__scroll {
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 16px 20px;
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
 }
 
 .heatmap__inner {
@@ -1637,6 +1758,127 @@ button {
 }
 
 .heatmap__legend-label {
+  font-size: 10px;
+  color: var(--slate);
+  margin: 0 4px;
+}
+
+/* ---------- Month calendar ---------- */
+
+.month-cal {
+  padding: 16px 20px;
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius);
+}
+
+.month-cal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.month-cal__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--carbon);
+  text-transform: capitalize;
+}
+
+.month-cal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.month-cal__weekdays span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--slate);
+  text-align: center;
+}
+
+.month-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-cal__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 52px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--fog);
+  cursor: default;
+  font-family: var(--font-chrome);
+}
+
+.month-cal__num {
+  font-size: 11px;
+  color: var(--carbon);
+}
+
+.month-cal__val {
+  font-size: 10px;
+  color: var(--carbon);
+  font-variant-numeric: tabular-nums;
+}
+
+.month-cal__day--1 {
+  background: #fbe3d5;
+}
+
+.month-cal__day--2 {
+  background: #f4bd96;
+}
+
+.month-cal__day--3 {
+  background: #ec8f5e;
+}
+
+.month-cal__day--4 {
+  background: #e26b33;
+}
+
+.month-cal__day.is-today {
+  outline: 2px solid var(--ember);
+  outline-offset: 1px;
+}
+
+.month-cal__day.is-future {
+  opacity: 0.4;
+}
+
+.month-cal__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.month-cal__stat {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.month-cal__legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.month-cal__legend-label {
   font-size: 10px;
   color: var(--slate);
   margin: 0 4px;

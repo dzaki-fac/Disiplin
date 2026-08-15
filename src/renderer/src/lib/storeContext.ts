@@ -39,6 +39,8 @@ export interface AppStore {
     id: string,
     patch: Partial<Pick<FocusSession, 'taskTitle' | 'minutes' | 'startedAt' | 'completedAt'>>
   ) => void
+  exportSessions: () => Promise<'ok' | 'canceled' | 'error'>
+  importSessions: () => Promise<{ ok: boolean; count: number } | null>
 }
 
 export const StoreContext = createContext<AppStore | null>(null)

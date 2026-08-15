@@ -1,8 +1,16 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  minimizeWindow: (): void => ipcRenderer.send('window:minimize'),
+  maximizeWindow: (): void => ipcRenderer.send('window:maximize'),
+  closeWindow: (): void => ipcRenderer.send('window:close'),
+  exportSessions: (payload: string): Promise<{ ok: boolean; canceled?: boolean; path?: string }> =>
+    ipcRenderer.invoke('sessions:export', payload),
+  importSessions: (): Promise<{ ok: boolean; canceled?: boolean; content?: string }> =>
+    ipcRenderer.invoke('sessions:import')
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

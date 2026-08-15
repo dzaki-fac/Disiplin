@@ -71,8 +71,9 @@ export function beep(): void {
       osc.start(start)
       osc.stop(start + dur + 0.05)
     }
-    play(880, 0, 0.4)
-    play(1174, 0.35, 0.5)
+    play(659.25, 0, 0.35)
+    play(783.99, 0.12, 0.35)
+    play(1046.5, 0.24, 0.5)
     setTimeout(() => ctx.close(), 1200)
   } catch {
     // audio not available
@@ -96,6 +97,34 @@ export function click(): void {
     osc.start(start)
     osc.stop(start + 0.1)
     setTimeout(() => ctx.close(), 120)
+  } catch {
+    // audio not available
+  }
+}
+
+export function clickPrimary(): void {
+  try {
+    const Ctx = window.AudioContext
+    const ctx = new Ctx()
+    const play = (type: OscillatorType, freq: number, delay: number, dur: number, vol: number): void => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = type
+      osc.frequency.value = freq
+      const start = ctx.currentTime + delay
+      gain.gain.setValueAtTime(0.0001, start)
+      gain.gain.exponentialRampToValueAtTime(vol, start + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + dur + 0.05)
+    }
+    play('square', 660, 0, 0.07, 0.15)
+    play('square', 880, 0.06, 0.07, 0.15)
+    play('triangle', 1320, 0.12, 0.12, 0.2)
+    play('triangle', 1760, 0.2, 0.2, 0.2)
+    setTimeout(() => ctx.close(), 600)
   } catch {
     // audio not available
   }

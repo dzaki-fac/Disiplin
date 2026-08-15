@@ -267,13 +267,19 @@ export function TimerView(): React.JSX.Element {
               type="button"
               className="cta cta--primary"
               onClick={running ? pauseTimer : startTimer}
+              data-sound-primary
             >
               {running ? 'Jeda' : 'Mulai'}
               <span className="arrow">→</span>
             </button>
             {isStopwatch ? (
               hasProgress && (
-                <button type="button" className="cta cta--ghost" onClick={stopStopwatch}>
+                <button
+                  type="button"
+                  className="cta cta--ghost"
+                  onClick={stopStopwatch}
+                  data-sound-primary
+                >
                   Selesai
                 </button>
               )
@@ -282,7 +288,12 @@ export function TimerView(): React.JSX.Element {
                 Lewati
               </button>
             ) : hasProgress ? (
-              <button type="button" className="cta cta--ghost" onClick={finishTimer}>
+              <button
+                type="button"
+                className="cta cta--ghost"
+                onClick={finishTimer}
+                data-sound-primary
+              >
                 Selesai
               </button>
             ) : null}

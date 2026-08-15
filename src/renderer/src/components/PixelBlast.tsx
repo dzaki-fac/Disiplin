@@ -5,6 +5,9 @@ import './PixelBlast.css'
 
 const APP_PALETTE = ['#d43008', '#2563eb', '#7c3aed']
 
+const MAX_DPR = 1.5
+const MAX_CANVAS_DIM = 1600
+
 type PixelVariant = 'square' | 'circle' | 'triangle' | 'diamond'
 
 interface PixelBlastProps {
@@ -437,13 +440,15 @@ const PixelBlast = ({
     })
     renderer.domElement.style.width = '100%'
     renderer.domElement.style.height = '100%'
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_DPR))
     container.appendChild(renderer.domElement)
     if (transparent) renderer.setClearAlpha(0)
     else renderer.setClearColor(0x000000, 1)
 
     const getColor = (i: number): THREE.Color =>
       new THREE.Color(colors[i] ?? colors[colors.length - 1] ?? APP_PALETTE[i] ?? '#d43008')
+
+    const displayRatio = Math.min(window.devicePixelRatio || 1, MAX_DPR)
 
     const uniforms: PixelUniforms = {
       uResolution: { value: new THREE.Vector2(0, 0) },
@@ -456,7 +461,7 @@ const PixelBlast = ({
       },
       uClickTimes: { value: new Float32Array(MAX_CLICKS) },
       uShapeType: { value: SHAPE_MAP[variant] ?? 0 },
-      uPixelSize: { value: pixelSize * renderer.getPixelRatio() },
+      uPixelSize: { value: pixelSize * displayRatio },
       uScale: { value: patternScale },
       uDensity: { value: patternDensity },
       uPixelJitter: { value: pixelSizeJitter },
@@ -487,11 +492,15 @@ const PixelBlast = ({
     const setSize = (): void => {
       const w = container.clientWidth || 1
       const h = container.clientHeight || 1
+      const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR)
+      const dim = Math.max(w, h)
+      const capScale = dim > MAX_CANVAS_DIM ? MAX_CANVAS_DIM / dim : 1
+      renderer.setPixelRatio(ratio * capScale)
       renderer.setSize(w, h, false)
       uniforms.uResolution.value.set(renderer.domElement.width, renderer.domElement.height)
       if (threeRef.current?.composer)
         threeRef.current.composer.setSize(renderer.domElement.width, renderer.domElement.height)
-      uniforms.uPixelSize.value = pixelSize * renderer.getPixelRatio()
+      uniforms.uPixelSize.value = pixelSize * ratio
     }
     setSize()
 
@@ -646,7 +655,7 @@ const PixelBlast = ({
     if (!t) return
     speedRef.current = speed
     t.uniforms.uShapeType.value = SHAPE_MAP[variant] ?? 0
-    t.uniforms.uPixelSize.value = pixelSize * t.renderer.getPixelRatio()
+    t.uniforms.uPixelSize.value = pixelSize * Math.min(window.devicePixelRatio || 1, MAX_DPR)
     const getColor = (i: number): THREE.Color =>
       new THREE.Color(colors[i] ?? colors[colors.length - 1] ?? APP_PALETTE[i] ?? '#d43008')
     t.uniforms.uColorA.value.set(getColor(0))
