@@ -37,6 +37,26 @@ Built with Electron, React, and TypeScript.
     rendered behind the UI, with ripple effects on click.
 - **Custom window chrome** with native window controls and a clean titlebar.
 
+## Screenshots
+
+### Fokus
+
+![Fokus](screenshots/Screenshot%202026-08-15%20170753.png)
+
+### Tugas
+
+![Tugas](screenshots/Screenshot%202026-08-15%20170746.png)
+
+### Riwayat
+
+![Riwayat](screenshots/Screenshot%202026-08-15%20170707.png)
+
+### Statistik
+
+![Statistik atas](screenshots/Screenshot%202026-08-15%20170658.png)
+
+![Statistik bawah](screenshots/Screenshot%202026-08-15%20170639.png)
+
 ## Tech Stack
 
 | Layer     | Technology                                            |
