@@ -41,11 +41,11 @@ Built with Electron, React, and TypeScript.
 
 ### Fokus
 
-![Fokus](screenshots/Screenshot%202026-08-15%20170753.png)
+![Fokus](screenshots/Screenshot%202026-08-15%20170639.png)
 
 ### Tugas
 
-![Tugas](screenshots/Screenshot%202026-08-15%20170746.png)
+![Tugas](screenshots/Screenshot%202026-08-15%20170658.png)
 
 ### Riwayat
 
@@ -53,9 +53,9 @@ Built with Electron, React, and TypeScript.
 
 ### Statistik
 
-![Statistik atas](screenshots/Screenshot%202026-08-15%20170658.png)
+![Statistik atas](screenshots/Screenshot%202026-08-15%20170746.png)
 
-![Statistik bawah](screenshots/Screenshot%202026-08-15%20170639.png)
+![Statistik bawah](screenshots/Screenshot%202026-08-15%20170753.png)
 
 ## Tech Stack
 
