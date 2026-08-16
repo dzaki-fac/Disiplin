@@ -2,6 +2,10 @@
 
 > A minimalist focus timer built for deep work.
 
+<p align="center">
+  <img src="resources/icon.png" alt="Disiplin" width="120" />
+</p>
+
 Disiplin is a desktop focus timer for the Pomodoro technique, plain timers, and
 stopwatch-style tracking. It records every finished session, organizes your tasks
 into weekly buckets, and turns your history into charts, a monthly calendar, and a
