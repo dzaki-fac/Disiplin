@@ -267,7 +267,7 @@ export function TimerView(): React.JSX.Element {
               type="button"
               className="cta cta--primary"
               onClick={running ? pauseTimer : startTimer}
-              data-sound-primary
+              data-sound-none
             >
               {running ? 'Jeda' : 'Mulai'}
               <span className="arrow">→</span>
@@ -278,7 +278,7 @@ export function TimerView(): React.JSX.Element {
                   type="button"
                   className="cta cta--ghost"
                   onClick={stopStopwatch}
-                  data-sound-primary
+                  data-sound-none
                 >
                   Selesai
                 </button>
@@ -292,7 +292,7 @@ export function TimerView(): React.JSX.Element {
                 type="button"
                 className="cta cta--ghost"
                 onClick={finishTimer}
-                data-sound-primary
+                data-sound-none
               >
                 Selesai
               </button>

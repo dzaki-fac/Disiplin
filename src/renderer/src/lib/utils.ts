@@ -80,6 +80,32 @@ export function beep(): void {
   }
 }
 
+export function pauseBeep(): void {
+  try {
+    const Ctx = window.AudioContext
+    const ctx = new Ctx()
+    const play = (freq: number, delay: number, dur: number): void => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const start = ctx.currentTime + delay
+      gain.gain.setValueAtTime(0.0001, start)
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(start)
+      osc.stop(start + dur + 0.05)
+    }
+    play(523.25, 0, 0.16)
+    play(392.0, 0.14, 0.22)
+    setTimeout(() => ctx.close(), 600)
+  } catch {
+    // audio not available
+  }
+}
+
 export function click(): void {
   try {
     const Ctx = window.AudioContext
@@ -120,11 +146,11 @@ export function clickPrimary(): void {
       osc.start(start)
       osc.stop(start + dur + 0.05)
     }
-    play('square', 660, 0, 0.07, 0.15)
-    play('square', 880, 0.06, 0.07, 0.15)
-    play('triangle', 1320, 0.12, 0.12, 0.2)
-    play('triangle', 1760, 0.2, 0.2, 0.2)
-    setTimeout(() => ctx.close(), 600)
+    play('sine', 440, 0, 0.18, 0.2)
+    play('sine', 523.25, 0.12, 0.18, 0.2)
+    play('sine', 659.25, 0.24, 0.22, 0.2)
+    play('sine', 880, 0.36, 0.3, 0.2)
+    setTimeout(() => ctx.close(), 800)
   } catch {
     // audio not available
   }

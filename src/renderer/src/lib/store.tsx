@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { FocusSession, SessionItem, Task, TimerMode, TimerStage, TimerState } from '../types'
 import { defaultSettings, defaultTimer, durationFor } from './constants'
-import { StoreContext } from './storeContext'
-import { beep, uid } from './utils'
+import { StoreContext, type CompletionInfo } from './storeContext'
+import { beep, clickPrimary, isToday, pauseBeep, uid } from './utils'
 import { SEED_SESSIONS, SEED_TASK, SEED_TASK_ID, TRAINING_TASKS } from './seed'
 
 const LS_TASKS = 'disiplin.tasks'
@@ -14,6 +14,14 @@ const LS_WEEK_NAMES = 'disiplin.weekNames'
 const LS_GROUP_ORDER = 'disiplin.groupOrder'
 const LS_SEEDED = 'disiplin.seeded'
 const SEED_VERSION = 4
+
+let lastCompleteBeepAt = 0
+const completeBeep = (): void => {
+  const now = Date.now()
+  if (now - lastCompleteBeepAt < 600) return
+  lastCompleteBeepAt = now
+  beep()
+}
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -106,9 +114,11 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     return base
   })
   const [now, setNow] = useState(() => Date.now())
+  const [completion, setCompletion] = useState<CompletionInfo | null>(null)
 
   const settingsRef = useRef(settings)
   const timerRef = useRef(timer)
+  const sessionsRef = useRef(sessions)
   const sessionListRef = useRef(sessionList)
   const tasksRef = useRef(tasks)
   useEffect(() => {
@@ -118,11 +128,26 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     timerRef.current = timer
   }, [timer])
   useEffect(() => {
+    sessionsRef.current = sessions
+  }, [sessions])
+  useEffect(() => {
     sessionListRef.current = sessionList
   }, [sessionList])
   useEffect(() => {
     tasksRef.current = tasks
   }, [tasks])
+
+  const celebrate = useCallback((session: FocusSession) => {
+    const from = sessionsRef.current
+      .filter((x) => isToday(x.completedAt))
+      .reduce((a, x) => a + x.minutes, 0)
+    setCompletion({
+      fromMinutes: from,
+      totalTodayMinutes: from + session.minutes
+    })
+  }, [])
+
+  const dismissCompletion = useCallback(() => setCompletion(null), [])
 
   useEffect(() => save(LS_TASKS, tasks), [tasks])
   useEffect(() => save(LS_SESSIONS, sessions), [sessions])
@@ -149,6 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         completedAt: at
       }
       setSessions((prev) => [session, ...prev])
+      celebrate(session)
 
       if (t.mode === 'timer') {
         setTimer({
@@ -160,7 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
           elapsedMs: 0,
           remainingMs: durationFor('timer', 'focus', s)
         })
-        if (s.sound) beep()
+        if (s.sound) completeBeep()
         return
       }
 
@@ -177,7 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         remainingMs: ms,
         cycleFocusCount: cycle
       })
-      if (s.sound) beep()
+      if (s.sound) completeBeep()
       return
     }
 
@@ -191,8 +217,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       elapsedMs: 0,
       remainingMs: ms
     })
-    if (s.sound) beep()
-  }, [])
+    if (s.sound) completeBeep()
+  }, [celebrate])
 
   // Catch up: if a running timer expired while the app was closed,
   // log the elapsed focus session(s) as a single completed session.
@@ -424,6 +450,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
 
   const startTimer = useCallback(() => {
     const s = settingsRef.current
+    if (s.sound && timerRef.current.phase !== 'running') clickPrimary()
     setTimer((prev) => {
       if (prev.mode === 'stopwatch') {
         return { ...prev, phase: 'running', startAt: Date.now() }
@@ -434,6 +461,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   }, [])
 
   const pauseTimer = useCallback(() => {
+    if (settingsRef.current.sound && timerRef.current.phase === 'running') pauseBeep()
     setTimer((prev) => {
       if (prev.phase !== 'running') return prev
       if (prev.mode === 'stopwatch' && prev.startAt !== null) {
@@ -482,6 +510,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         completedAt: Date.now()
       }
       setSessions((prev) => [session, ...prev])
+      celebrate(session)
     }
     setTimer((prev) => ({
       ...prev,
@@ -491,12 +520,14 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       elapsedMs: 0,
       remainingMs: durationFor('stopwatch', 'focus', s)
     }))
-  }, [])
+    if (s.sound) completeBeep()
+  }, [celebrate])
 
   const finishTimer = useCallback(() => {
     const t = timerRef.current
     const s = settingsRef.current
     if (t.phase !== 'running' && t.phase !== 'paused') return
+    if (s.sound) completeBeep()
     const at = Date.now()
     const duration = durationFor(t.mode, t.stage, s)
     const remaining =
@@ -511,6 +542,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       completedAt: at
     }
     setSessions((prev) => [session, ...prev])
+    celebrate(session)
     setTimer((prev) => ({
       ...prev,
       stage: 'focus',
@@ -520,7 +552,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       elapsedMs: 0,
       remainingMs: durationFor(prev.mode, prev.stage, s)
     }))
-  }, [])
+  }, [celebrate])
 
   const skipTimer = useCallback(() => {
     const s = settingsRef.current
@@ -639,6 +671,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         timer,
         now,
         remainingMs,
+        completion,
+        dismissCompletion,
         addTask,
         toggleTask,
         deleteTask,

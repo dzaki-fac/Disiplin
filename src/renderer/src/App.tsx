@@ -7,6 +7,7 @@ import { TimerView } from './components/TimerView'
 import { TasksView } from './components/TasksView'
 import { HistoryView } from './components/HistoryView'
 import { StatsView } from './components/StatsView'
+import { SessionCompletePopup } from './components/SessionCompletePopup'
 import PixelBlast from './components/PixelBlast'
 import type { ViewId } from './types'
 import { click, clickPrimary, isToday } from './lib/utils'
@@ -23,6 +24,7 @@ function Shell(): React.JSX.Element {
       const target = e.target as Element | null
       const button = target ? target.closest('button') : null
       if (!button) return
+      if (button.hasAttribute('data-sound-none')) return
       if (button.hasAttribute('data-sound-primary')) clickPrimary()
       else click()
     }
@@ -66,6 +68,7 @@ function Shell(): React.JSX.Element {
           {view === 'stats' && <StatsView />}
         </main>
       </div>
+      <SessionCompletePopup />
     </div>
   )
 }

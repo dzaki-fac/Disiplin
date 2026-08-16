@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useStore } from '../lib/storeContext'
 import { dayKey, fmtMinutes, isToday } from '../lib/utils'
 import { AnimatedInView } from './AnimatedInView'
+import { FlameIcon } from './FlameIcon'
 import { Heatmap } from './Heatmap'
 import { MonthCalendar } from './MonthCalendar'
 import { WeekAreaChart } from './WeekAreaChart'
@@ -74,12 +75,20 @@ export function StatsView(): React.JSX.Element {
           undefined,
           stats.todaySessions === 0
         )}
-        {statCard(
-          'Streak',
-          String(stats.streak),
-          stats.streak > 0 ? 'hari berturut-turut' : 'mulai rutinitas',
-          stats.streak === 0
-        )}
+        <AnimatedInView className="stat-card">
+          <span className="stat-card__label">Streak</span>
+          <span
+            className={`stat-card__value stat-card__value--streak${
+              stats.streak === 0 ? ' stat-card__value--muted' : ''
+            }`}
+          >
+            {stats.streak}
+            {stats.streak > 0 && <FlameIcon className="stat-card__flame" />}
+          </span>
+          <span className="stat-card__sub">
+            {stats.streak > 0 ? 'hari berturut-turut' : 'mulai rutinitas'}
+          </span>
+        </AnimatedInView>
       </div>
 
       <AnimatedInView as="section" className="panel">

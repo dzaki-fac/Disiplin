@@ -1,6 +1,11 @@
 import { createContext, useContext } from 'react'
 import type { FocusSession, SessionItem, Settings, Task, TimerMode, TimerState } from '../types'
 
+export interface CompletionInfo {
+  fromMinutes: number
+  totalTodayMinutes: number
+}
+
 export interface AppStore {
   tasks: Task[]
   sessions: FocusSession[]
@@ -11,6 +16,8 @@ export interface AppStore {
   timer: TimerState
   now: number
   remainingMs: number
+  completion: CompletionInfo | null
+  dismissCompletion: () => void
   addTask: (title: string, week?: number) => void
   toggleTask: (id: string) => void
   deleteTask: (id: string) => void

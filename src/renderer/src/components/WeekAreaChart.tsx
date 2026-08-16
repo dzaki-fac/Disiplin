@@ -25,6 +25,7 @@ const SERIES_COLORS: Record<string, string> = {
 }
 
 const AVG_COLOR = '#c4714d'
+const AVG_PREV_COLOR = '#9c9c9c'
 
 interface WeekDatum {
   ts: number
@@ -36,6 +37,7 @@ interface ChartTooltipProps {
   active?: boolean
   label?: string | number
   avg?: number
+  prevAvg?: number
   payload?: ReadonlyArray<{
     name?: string | number
     value?: string | number
@@ -48,6 +50,7 @@ function ChartTooltip({
   active,
   label,
   avg,
+  prevAvg,
   payload
 }: ChartTooltipProps): React.JSX.Element | null {
   if (!active || !payload || payload.length === 0) return null
@@ -72,8 +75,13 @@ function ChartTooltip({
       })}
       <span className="week-tooltip__row">
         <span className="week-tooltip__dot" style={{ background: AVG_COLOR }} />
-        <span className="week-tooltip__name">Rata-rata</span>
+        <span className="week-tooltip__name">Rata-rata (Minggu ini)</span>
         <span className="week-tooltip__value">{fmtMinutes(avg ?? 0)}</span>
+      </span>
+      <span className="week-tooltip__row">
+        <span className="week-tooltip__dot" style={{ background: AVG_PREV_COLOR }} />
+        <span className="week-tooltip__name">Rata-rata (Minggu lalu)</span>
+        <span className="week-tooltip__value">{fmtMinutes(prevAvg ?? 0)}</span>
       </span>
     </div>
   )
@@ -105,6 +113,11 @@ export function WeekAreaChart(): React.JSX.Element {
 
   const avg = useMemo(
     () => Math.round(data.reduce((acc, d) => acc + d.cur, 0) / data.length),
+    [data]
+  )
+
+  const prevAvg = useMemo(
+    () => Math.round(data.reduce((acc, d) => acc + d.prev, 0) / data.length),
     [data]
   )
 
@@ -146,10 +159,11 @@ export function WeekAreaChart(): React.JSX.Element {
             allowDecimals={false}
           />
           <Tooltip
-            content={<ChartTooltip avg={avg} />}
+            content={<ChartTooltip avg={avg} prevAvg={prevAvg} />}
             cursor={{ stroke: 'var(--ember)', strokeOpacity: 0.25 }}
           />
           <ReferenceLine y={avg} stroke={AVG_COLOR} strokeWidth={1.5} />
+          <ReferenceLine y={prevAvg} stroke={AVG_PREV_COLOR} strokeWidth={1.5} />
           <Area
             type="monotone"
             dataKey="cur"
