@@ -3,7 +3,9 @@ import type { FocusSession } from '../types'
 import { useStore } from '../lib/storeContext'
 import { AnimatedInView } from './AnimatedInView'
 import { dayKey, fmtDay, fmtMinutes, fmtTime, isToday } from '../lib/utils'
-import { ExportIcon, ImportIcon } from './icons'
+import { CustomSelect } from './CustomSelect'
+import { DatePicker } from './DatePicker'
+import { ExportIcon, ImportIcon, PlusIcon } from './icons'
 
 function toTimeValue(ts: number): string {
   const d = new Date(ts)
@@ -15,13 +17,6 @@ function toTimeValue(ts: number): string {
 function minutesOfDay(v: string): number {
   const [h, m] = v.split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
-}
-
-function applyTime(ts: number, time: string): number {
-  const [h, m] = time.split(':').map(Number)
-  const d = new Date(ts)
-  d.setHours(h || 0, m || 0, 0, 0)
-  return d.getTime()
 }
 
 function EditPopup({
@@ -37,6 +32,7 @@ function EditPopup({
 }): React.JSX.Element {
   const { sessionList } = useStore()
   const [title, setTitle] = useState(session.taskTitle ?? '')
+  const [editDate, setEditDate] = useState(() => new Date(session.startedAt))
   const [start, setStart] = useState(toTimeValue(session.startedAt))
   const [end, setEnd] = useState(toTimeValue(session.completedAt))
 
@@ -47,9 +43,13 @@ function EditPopup({
   const minutes = Math.max(1, diff)
 
   const commit = (): void => {
-    const startTs = applyTime(session.startedAt, start)
-    let endTs = applyTime(session.completedAt, end)
+    const baseDate = new Date(editDate)
+    baseDate.setHours(0, 0, 0, 0)
+    const baseTs = baseDate.getTime()
+    const startTs = baseTs + minutesOfDay(start) * 60_000
+    let endTs = baseTs + minutesOfDay(end) * 60_000
     if (endTs <= startTs) endTs += 24 * 60 * 60 * 1000
+    const minutes = Math.max(1, Math.round((endTs - startTs) / 60_000))
     onSave({ taskTitle: title.trim() || null, minutes, startedAt: startTs, completedAt: endTs })
   }
 
@@ -68,19 +68,14 @@ function EditPopup({
         <label className="session-edit__label" htmlFor="session-pick">
           Pilih sesi yang ada
         </label>
-        <select
-          id="session-pick"
-          className="session-edit__select"
+        <CustomSelect
+          options={[
+            { value: '', label: 'Tanpa tugas' },
+            ...sessionList.map((s) => ({ value: s.title, label: s.title }))
+          ]}
           value={sessionList.some((s) => s.title === title) ? title : ''}
-          onChange={(e) => setTitle(e.target.value)}
-        >
-          <option value="">Tanpa tugas</option>
-          {sessionList.map((s) => (
-            <option key={s.id} value={s.title}>
-              {s.title}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setTitle(v)}
+        />
 
         <label className="session-edit__label" htmlFor="session-title">
           Nama sesi
@@ -94,38 +89,29 @@ function EditPopup({
           onChange={(e) => setTitle(e.target.value)}
         />
 
+        <label className="session-edit__label">Tanggal</label>
+        <DatePicker value={editDate} onChange={setEditDate} />
+
         <div className="session-edit__times">
-          <label className="session-edit__label">
-            Jam mulai
-            <input
-              type="time"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              className="session-edit__time"
-            />
-          </label>
-          <label className="session-edit__label">
-            Jam selesai
-            <input
-              type="time"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              className="session-edit__time"
-            />
-          </label>
+          <span className="session-edit__label">Jam mulai</span>
+          <span className="session-edit__label">Jam selesai</span>
+          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
+          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
         </div>
 
-        <p className="session-edit__total">
-          Durasi: <strong>{minutes} menit</strong>
-        </p>
+        <div className="session-edit__footer">
+          <p className="session-edit__total">
+            Durasi: <strong>{minutes} menit</strong>
+          </p>
 
-        <div className="session-edit__actions">
-          <button type="submit" className="cta cta--primary">
-            Simpan
-          </button>
-          <button type="button" className="cta cta--ghost" onMouseDown={onCancel}>
-            Batal
-          </button>
+          <div className="session-edit__actions">
+            <button type="submit" className="cta cta--primary">
+              Simpan
+            </button>
+            <button type="button" className="cta cta--ghost" onMouseDown={onCancel}>
+              Batal
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -203,9 +189,18 @@ function SessionRow({ session }: { session: FocusSession }): React.JSX.Element {
 }
 
 export function HistoryView(): React.JSX.Element {
-  const { sessions, clearSessions, exportSessions, importSessions } = useStore()
+  const { sessions, sessionList, clearSessions, exportSessions, importSessions, addManualSession } =
+    useStore()
   const [notice, setNotice] = useState<string | null>(null)
   const noticeTimer = useRef<number | null>(null)
+  const [manualOpen, setManualOpen] = useState(false)
+  const [manualTitle, setManualTitle] = useState('')
+  const [manualDate, setManualDate] = useState(() => new Date())
+  const [manualStart, setManualStart] = useState(() => toTimeValue(Date.now()))
+  const [manualEnd, setManualEnd] = useState(() => {
+    const d = new Date(Date.now() + 25 * 60_000)
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  })
 
   const showNotice = (text: string): void => {
     setNotice(text)
@@ -267,13 +262,122 @@ export function HistoryView(): React.JSX.Element {
           >
             <ImportIcon size={16} />
           </button>
+          <button
+            type="button"
+            className="icon-btn icon-btn--bordered"
+            aria-label="Tambah sesi manual"
+            title="Tambah sesi manual"
+            onClick={() => setManualOpen((o) => !o)}
+            data-sound-none
+          >
+            <PlusIcon size={16} />
+          </button>
         </div>
       </header>
+
+      {manualOpen && (
+        <div className="modal-overlay" onMouseDown={() => setManualOpen(false)}>
+          <form
+            className="session-edit"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const baseDate = new Date(manualDate)
+              baseDate.setHours(0, 0, 0, 0)
+              const baseTs = baseDate.getTime()
+              const startTs = baseTs + minutesOfDay(manualStart) * 60_000
+              let endTs = baseTs + minutesOfDay(manualEnd) * 60_000
+              if (endTs <= startTs) endTs += 24 * 60 * 60 * 1000
+              const mins = Math.max(1, Math.round((endTs - startTs) / 60_000))
+              addManualSession(manualTitle.trim() || null, mins, startTs, endTs - startTs)
+              setManualOpen(false)
+              setManualTitle('')
+              setManualDate(new Date())
+              setManualStart(toTimeValue(Date.now()))
+              const d2 = new Date(Date.now() + 25 * 60_000)
+              setManualEnd(
+                `${String(d2.getHours()).padStart(2, '0')}:${String(d2.getMinutes()).padStart(2, '0')}`
+              )
+              showNotice('Sesi berhasil ditambahkan')
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <h3 className="session-edit__title">Tambah sesi</h3>
+
+            <label className="session-edit__label" htmlFor="manual-session-pick">
+              Pilih sesi yang ada
+            </label>
+            <CustomSelect
+              options={[
+                { value: '', label: 'Tanpa tugas' },
+                ...sessionList.map((s) => ({ value: s.title, label: s.title }))
+              ]}
+              value={sessionList.some((s) => s.title === manualTitle) ? manualTitle : ''}
+              onChange={(v) => setManualTitle(v)}
+            />
+
+            <label className="session-edit__label" htmlFor="manual-session-title">
+              Nama sesi
+            </label>
+            <input
+              id="manual-session-title"
+              type="text"
+              maxLength={80}
+              placeholder="Nama sesi"
+              value={manualTitle}
+              onChange={(e) => setManualTitle(e.target.value)}
+            />
+
+            <label className="session-edit__label">Tanggal</label>
+            <DatePicker value={manualDate} onChange={setManualDate} />
+
+            <div className="session-edit__times">
+              <span className="session-edit__label">Jam mulai</span>
+              <span className="session-edit__label">Jam selesai</span>
+              <input type="time" value={manualStart} onChange={(e) => setManualStart(e.target.value)} />
+              <input type="time" value={manualEnd} onChange={(e) => setManualEnd(e.target.value)} />
+            </div>
+
+            <div className="session-edit__footer">
+              <p className="session-edit__total">
+                Durasi:{' '}
+                <strong>
+                  {(() => {
+                    let diff = minutesOfDay(manualEnd) - minutesOfDay(manualStart)
+                    if (diff <= 0) diff += 24 * 60
+                    return Math.max(1, diff)
+                  })()}{' '}
+                  menit
+                </strong>
+              </p>
+
+              <div className="session-edit__actions">
+                <button type="submit" className="cta cta--primary">
+                  Tambah
+                </button>
+                <button
+                  type="button"
+                  className="cta cta--ghost"
+                  onMouseDown={() => setManualOpen(false)}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       {notice && <p className="history-notice">{notice}</p>}
 
       {sessions.length > 0 && (
-        <button type="button" className="cta cta--danger" onClick={clearSessions}>
+        <button
+          type="button"
+          className="cta cta--danger"
+          onClick={() => {
+            if (!window.confirm('Yakin ingin menghapus semua riwayat?')) return
+            clearSessions()
+          }}
+        >
           Hapus semua riwayat
           <span className="arrow">→</span>
         </button>

@@ -599,6 +599,21 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     []
   )
 
+  const addManualSession = useCallback(
+    (taskTitle: string | null, minutes: number, startedAt: number, durationMs: number) => {
+      const session: FocusSession = {
+        id: uid(),
+        taskId: null,
+        taskTitle: taskTitle || null,
+        minutes,
+        startedAt,
+        completedAt: startedAt + durationMs
+      }
+      setSessions((prev) => [session, ...prev])
+    },
+    []
+  )
+
   const exportSessions = useCallback(async (): Promise<'ok' | 'canceled' | 'error'> => {
     if (typeof window.api?.exportSessions !== 'function') return 'error'
     const payload = JSON.stringify(
@@ -698,6 +713,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         clearSessions,
         deleteSession,
         updateSession,
+        addManualSession,
         exportSessions,
         importSessions
       }}

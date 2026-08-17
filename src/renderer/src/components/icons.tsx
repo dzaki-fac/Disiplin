@@ -1,9 +1,11 @@
 interface IconProps {
   size?: number
+  className?: string
 }
 
 function Svg({
   size = 20,
+  className,
   children
 }: IconProps & { children: React.ReactNode }): React.JSX.Element {
   return (
@@ -16,6 +18,7 @@ function Svg({
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
+      className={className}
       aria-hidden="true"
     >
       {children}

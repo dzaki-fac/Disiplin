@@ -83,7 +83,11 @@ export function StatsView(): React.JSX.Element {
             }`}
           >
             {stats.streak}
-            {stats.streak > 0 && <FlameIcon className="stat-card__flame" />}
+            {stats.streak > 0 && (
+              <FlameIcon
+                className={`stat-card__flame${stats.todayMinutes === 0 ? ' stat-card__flame--muted' : ''}`}
+              />
+            )}
           </span>
           <span className="stat-card__sub">
             {stats.streak > 0 ? 'hari berturut-turut' : 'mulai rutinitas'}

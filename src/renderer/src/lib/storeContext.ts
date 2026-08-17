@@ -46,6 +46,12 @@ export interface AppStore {
     id: string,
     patch: Partial<Pick<FocusSession, 'taskTitle' | 'minutes' | 'startedAt' | 'completedAt'>>
   ) => void
+  addManualSession: (
+    taskTitle: string | null,
+    minutes: number,
+    startedAt: number,
+    durationMs: number
+  ) => void
   exportSessions: () => Promise<'ok' | 'canceled' | 'error'>
   importSessions: () => Promise<{ ok: boolean; count: number } | null>
 }

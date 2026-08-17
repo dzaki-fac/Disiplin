@@ -957,8 +957,8 @@ button {
 
 .session-now {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .session-now__name {
@@ -972,6 +972,20 @@ button {
   font-style: normal;
   font-size: 13px;
   color: var(--slate);
+}
+
+.session-now__quote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--slate);
+  font-style: italic;
+  max-width: 280px;
+}
+
+.session-now__quote-author {
+  font-style: normal;
+  opacity: 0.7;
 }
 
 .controls {
@@ -1382,9 +1396,16 @@ button {
   margin-top: 4px;
 }
 
+.session-edit__times .session-edit__label {
+  margin-top: 0;
+}
+
 .session-edit input,
-.session-edit select {
+.session-edit select,
+.session-edit .custom-select__trigger,
+.session-edit .date-picker__trigger {
   width: 100%;
+  height: 38px;
   padding: 8px 10px;
   font-size: 15px;
   text-transform: none;
@@ -1396,19 +1417,24 @@ button {
 }
 
 .session-edit input:focus,
-.session-edit select:focus {
+.session-edit select:focus,
+.session-edit .custom-select__trigger:focus,
+.session-edit .date-picker__trigger:focus,
+.session-edit .custom-select__trigger.is-open,
+.session-edit .date-picker__trigger.is-open {
   border-color: var(--ember);
 }
 
 .session-edit__times {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-rows: auto auto;
+  gap: 6px 12px;
   margin-top: 4px;
 }
 
-.session-edit__time {
-  font-variant-numeric: tabular-nums;
+.session-edit__times input::-webkit-calendar-picker-indicator {
+  display: none;
 }
 
 .session-edit__total {
@@ -1421,6 +1447,21 @@ button {
   color: var(--ember);
 }
 
+.session-edit__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.session-edit__footer .session-edit__total {
+  margin: 0;
+}
+
+.session-edit__footer .session-edit__actions {
+  margin-top: 0;
+}
+
 .session-edit__actions {
   display: flex;
   justify-content: flex-end;
@@ -1431,6 +1472,112 @@ button {
 .session-edit .cta {
   font-size: 13px;
   white-space: nowrap;
+}
+
+.date-picker {
+  position: relative;
+}
+
+.date-picker__trigger {
+  display: block;
+  width: 100%;
+  height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--ash);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.date-picker__trigger:hover {
+  border-color: var(--ember);
+}
+
+.date-picker__popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  width: 260px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--ash);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(20 20 20 / 0.12);
+}
+
+.date-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.date-picker__month-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--carbon);
+  text-transform: capitalize;
+}
+
+.date-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.date-picker__weekdays span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--slate);
+  text-align: center;
+}
+
+.date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.date-picker__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-chrome);
+  font-size: 12px;
+  color: var(--carbon);
+  transition: background 0.12s;
+}
+
+.date-picker__day:hover {
+  background: var(--fog);
+}
+
+.date-picker__day.is-today {
+  outline: 2px solid var(--ember);
+  outline-offset: -2px;
+}
+
+.date-picker__day.is-selected {
+  background: var(--ember);
+  color: #fff;
+}
+
+.date-picker__day.is-selected:hover {
+  background: #b92a06;
 }
 
 .empty-state {
@@ -1449,6 +1596,89 @@ button {
   font-family: var(--font-chrome);
   font-size: 14px;
   color: var(--ash);
+}
+
+.custom-select {
+  position: relative;
+}
+
+.custom-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 38px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ash);
+  border-radius: var(--radius);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.custom-select__trigger:hover {
+  border-color: var(--ember);
+}
+
+.custom-select__trigger.is-open {
+  border-color: var(--ember);
+}
+
+.custom-select__placeholder {
+  color: var(--slate);
+}
+
+.custom-select__chevron {
+  flex-shrink: 0;
+  color: var(--slate);
+  transition: transform 0.2s;
+}
+
+.custom-select__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.custom-select__popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--paper);
+  border: 1px solid var(--ash);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(20 20 20 / 0.12);
+}
+
+.custom-select__option {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.custom-select__option:hover {
+  background: var(--fog);
+}
+
+.custom-select__option.is-selected {
+  background: rgb(212 48 8 / 0.08);
+  color: var(--ember);
+  font-weight: 600;
 }
 
 /* ---------- Stats ---------- */
@@ -1499,6 +1729,11 @@ button {
   height: 32px;
   transform-origin: 50% 88%;
   animation: flame-flicker 2.2s ease-in-out infinite, flame-glow-pulse 2.2s ease-in-out infinite;
+}
+
+.stat-card__flame--muted {
+  filter: grayscale(1) opacity(0.45);
+  animation: none;
 }
 
 .stat-card__sub {
@@ -2072,6 +2307,12 @@ button {
   position: relative;
   width: 52px;
   height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flame__wrap {
   display: flex;
   align-items: center;
   justify-content: center;

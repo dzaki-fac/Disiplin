@@ -7,6 +7,7 @@ import { FlameIcon } from './FlameIcon'
 export function SessionCompletePopup(): React.JSX.Element | null {
   const { completion, sessions, dismissCompletion } = useStore()
   const [display, setDisplay] = useState(() => completion?.fromMinutes ?? 0)
+  const isFirstToday = completion !== null && completion.fromMinutes === 0
 
   useEffect(() => {
     if (!completion) return
@@ -56,7 +57,18 @@ export function SessionCompletePopup(): React.JSX.Element | null {
           ✕
         </button>
         <div className="flame" aria-hidden="true">
-          <FlameIcon className="flame__svg" />
+          {isFirstToday ? (
+            <motion.div
+              className="flame__wrap"
+              initial={{ filter: 'grayscale(1) brightness(1.6)', opacity: 0.5 }}
+              animate={{ filter: 'grayscale(0) brightness(1)', opacity: 1 }}
+              transition={{ duration: 2.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <FlameIcon className="flame__svg" />
+            </motion.div>
+          ) : (
+            <FlameIcon className="flame__svg" />
+          )}
         </div>
         <h2 className="complete-card__title">Sesi Selesai!</h2>
         <p className="complete-card__streak">

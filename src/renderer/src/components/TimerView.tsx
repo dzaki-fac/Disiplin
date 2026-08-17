@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TimerMode } from '../types'
 import { durationFor } from '../lib/constants'
 import { useStore } from '../lib/storeContext'
-import { fmtClock } from '../lib/utils'
+import { fmtClock, isToday } from '../lib/utils'
 import { AnimatedInView } from './AnimatedInView'
 import { ProgressRing } from './ProgressRing'
+import { randomQuote } from '../data/quotes'
 
 const MODE_META: Record<TimerMode, { label: string; sub: string }> = {
   stopwatch: { label: 'Stopwatch', sub: 'Stopwatch' },
@@ -127,6 +128,7 @@ export function TimerView(): React.JSX.Element {
     settings,
     now,
     remainingMs,
+    sessions,
     setTimerMode,
     startTimer,
     pauseTimer,
@@ -137,6 +139,7 @@ export function TimerView(): React.JSX.Element {
   } = useStore()
 
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [quote, setQuote] = useState(randomQuote)
 
   const isStopwatch = timer.mode === 'stopwatch'
   const isPomodoro = timer.mode === 'pomodoro'
@@ -151,13 +154,24 @@ export function TimerView(): React.JSX.Element {
     : duration > 0
       ? 1 - remainingMs / duration
       : 0
-  const displayMs = isStopwatch ? elapsedMs : remainingMs
+  const todayMinutes = sessions
+    .filter((s) => isToday(s.completedAt))
+    .reduce((a, s) => a + s.minutes, 0)
+  const idle = timer.phase === 'idle'
+  const displayMs =
+    isStopwatch && idle ? todayMinutes * 60_000 : isStopwatch ? elapsedMs : remainingMs
   const stageLabel = isPomodoro ? STAGE_META[timer.stage] : MODE_META[timer.mode].sub
   const inCycle =
     timer.cycleFocusCount +
     (isPomodoro && timer.stage === 'focus' && timer.phase === 'running' ? 1 : 0)
 
   const running = timer.phase === 'running'
+
+  useEffect(() => {
+    const id = window.setInterval(() => setQuote(randomQuote()), 5 * 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+
   const ringColor =
     timer.phase === 'running'
       ? '#d43008'
@@ -254,6 +268,14 @@ export function TimerView(): React.JSX.Element {
               <span className="session-now__name session-now__name--empty">
                 Belum ada sesi — pilih atau buat di bawah
               </span>
+            )}
+            {quote.quote && (
+              <p className="session-now__quote">
+                &ldquo;{quote.quote}&rdquo;
+                {quote.author && (
+                  <span className="session-now__quote-author"> &mdash; {quote.author}</span>
+                )}
+              </p>
             )}
           </div>
 
